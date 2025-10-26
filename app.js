@@ -1,12 +1,12 @@
-// === CONFIGURACIÓN (¡REEMPLAZA CON TUS DATOS!) ===
+// === CONFIGURACIÓN DE SUPABASE (tus datos) ===
 const SUPABASE_URL = "https://hwswuwkynyixaonukeik.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3c3d1d2t5bnlpeGFvbnVrZWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MDMyNDEsImV4cCI6MjA3NzA3OTI0MX0.p-JX1WnSOSBJSIF2XwM5YkHqbfUeiJ8YjKOJkIaAPlw"; // ¡PON TU CLAVE COMPLETA!
-const CLAVE_SECRETA = "7645"; // ← Cambia esto a tu clave personal
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3c3d1d2t5bnlpeGFvbnVrZWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MDMyNDEsImV4cCI6MjA3NzA3OTI0MX0.p-JX1WnSOSBJSIF2XwM5YkHqbfUeiJ8YjKOJkIaAPlw";
+const CLAVE_SECRETA = "8745"; // clave numérica que usarás al subir
 
-// === INICIALIZAR SUPABASE ===
+// === INICIALIZAR SUPABASE (solo para listar) ===
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// === PROTEGER SUBIDA (tocar título 3 veces) ===
+// === PROTEGER SUBIDA: tocar título 3 veces ===
 let toques = 0;
 document.getElementById('titulo').addEventListener('click', () => {
   toques++;
@@ -16,8 +16,8 @@ document.getElementById('titulo').addEventListener('click', () => {
   }
 });
 
-// === SUBIR AUDIO CON PROGRESO ===
-document.getElementById('btnSubir').addEventListener('click', async () => {
+// === SUBIR AUDIO CON PROGRESO REAL ===
+document.getElementById('btnSubir').addEventListener('click', () => {
   const clave = document.getElementById('claveAdmin').value;
   const file = document.getElementById('audioFile').files[0];
   const msg = document.getElementById('mensaje');
@@ -37,34 +37,44 @@ document.getElementById('btnSubir').addEventListener('click', async () => {
     return;
   }
 
-  // Mostrar barra de progreso
   progreso.style.display = 'block';
   barra.style.width = '0%';
   msg.textContent = "Subiendo...";
 
-  // Subir con progreso
-  const nombre = `predicacion-${Date.now()}.${file.name.split('.').pop()}`;
-  const { error } = await supabase.storage
-    .from('audios')
-    .upload(nombre, file, {
-      cacheControl: '3600',
-      upsert: false,
-      // Supabase no da progreso nativo, pero podemos simularlo con tiempo estimado
-    });
+  const extension = file.name.split('.').pop() || 'mp3';
+  const nombre = `predicacion-${Date.now()}.${extension}`;
+  const url = `${SUPABASE_URL}/storage/v1/object/audios/${encodeURIComponent(nombre)}`;
 
-  if (error) {
-    msg.textContent = "Error al subir";
-    progreso.style.display = 'none';
-    console.error(error);
-  } else {
-    msg.textContent = "¡Subido con éxito!";
-    progreso.style.display = 'none';
-    document.getElementById('audioFile').value = '';
-    cargarAudios();
-  }
+  const xhr = new XMLHttpRequest();
+
+  xhr.upload.addEventListener('progress', (e) => {
+    if (e.lengthComputable) {
+      const porcentaje = Math.round((e.loaded / e.total) * 100);
+      barra.style.width = `${porcentaje}%`;
+      msg.textContent = `Subiendo... ${porcentaje}%`;
+    }
+  });
+
+  xhr.addEventListener('load', () => {
+    if (xhr.status === 200) {
+      msg.textContent = "¡Subido con éxito!";
+      progreso.style.display = 'none';
+      document.getElementById('audioFile').value = '';
+      cargarAudios();
+    } else {
+      msg.textContent = "Error al subir";
+      progreso.style.display = 'none';
+      console.error("Error:", xhr.status, xhr.responseText);
+    }
+  });
+
+  xhr.open('POST', url);
+  xhr.setRequestHeader('Authorization', `Bearer ${SUPABASE_ANON_KEY}`);
+  xhr.setRequestHeader('Content-Type', file.type || 'audio/mpeg');
+  xhr.send(file);
 });
 
-// === CARGAR Y MOSTRAR AUDIOS CON ETIQUETAS ===
+// === CARGAR Y MOSTRAR AUDIOS ===
 async function cargarAudios() {
   const { data, error } = await supabase.storage.from('audios').list('', {
     sortBy: { column: 'name', order: 'desc' }
@@ -83,10 +93,8 @@ async function cargarAudios() {
 
   contenedor.innerHTML = '';
   data.forEach(archivo => {
-    // Extraer fecha del nombre (ej: predicacion-1729123456789.mp3)
     const timestamp = archivo.name.match(/predicacion-(\d+)/)?.[1];
     const fecha = timestamp ? new Date(parseInt(timestamp)).toLocaleDateString('es-ES') : 'Sin fecha';
-    
     const url = supabase.storage.from('audios').getPublicUrl(archivo.name).data.publicUrl;
     
     const div = document.createElement('div');
