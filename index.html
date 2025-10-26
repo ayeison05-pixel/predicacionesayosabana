@@ -5,26 +5,121 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Predicaciones Iglesia</title>
   <link rel="manifest" href="manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
-    h1 { text-align: center; user-select: none; }
-    #uploadSection { display: none; margin: 20px 0; }
-    audio { width: 100%; margin: 10px 0; }
-    button, input { padding: 10px; margin: 5px 0; width: 100%; }
+    :root {
+      --fondo: #f8fdf6;
+      --titulo: #2e5a3a;
+      --boton: #8dd96a;
+      --sombra: rgba(0,0,0,0.1);
+    }
+    body {
+      font-family: 'Cormorant Garamond', serif;
+      background: var(--fondo);
+      padding: 15px;
+      max-width: 800px;
+      margin: 0 auto;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    #logo {
+      max-width: 120px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 2.2em;
+      color: var(--titulo);
+      margin: 0;
+      user-select: none;
+    }
+    #uploadSection {
+      display: none;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px var(--sombra);
+      margin: 20px 0;
+    }
+    .input-group {
+      margin: 12px 0;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      background: var(--boton);
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 6px var(--sombra);
+    }
+    button:hover, button:active {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px var(--sombra);
+    }
+    #progreso {
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      margin: 15px 0;
+      overflow: hidden;
+      display: none;
+    }
+    #barra {
+      height: 100%;
+      background: var(--boton);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .audio-item {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 12px 0;
+      box-shadow: 0 2px 8px var(--sombra);
+    }
+    .audio-etiqueta {
+      font-weight: bold;
+      color: var(--titulo);
+      margin-bottom: 8px;
+      font-size: 1.1em;
+    }
+    audio {
+      width: 100%;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
-  <h1 id="titulo">Predicaciones</h1>
+  <header>
+    <img id="logo" src="logo.png" alt="Alfa y Omega La Sabana">
+    <h1 id="titulo">Predicaciones</h1>
+  </header>
 
   <div id="uploadSection">
-    <input type="password" id="claveAdmin" placeholder="Clave secreta" />
-    <input type="file" id="audioFile" accept="audio/mp3,audio/mpeg" />
-    <button id="btnSubir">Subir Predicación</button>
+    <div class="input-group">
+      <input type="password" id="claveAdmin" placeholder="Clave secreta" />
+    </div>
+    <div class="input-group">
+      <input type="file" id="audioFile" accept="audio/mp3,audio/m4a,audio/mpeg" />
+    </div>
+    <button id="btnSubir">🎙️ Subir Predicación</button>
+    <div id="progreso"><div id="barra"></div></div>
     <div id="mensaje"></div>
   </div>
 
   <div id="listaAudios">
-    <h2>Predicaciones Disponibles</h2>
+    <h2>▶️ Predicaciones Disponibles</h2>
     <div id="audios"></div>
   </div>
 
